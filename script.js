@@ -1,4 +1,4 @@
-document.getElementById('contactForm').addEventListener('submit', async function(e) {
+document.getElementById('contactForm').addEventListener('submit', function(e) {
     e.preventDefault();
 
     // Проверка reCAPTCHA (если есть)
@@ -7,7 +7,7 @@ document.getElementById('contactForm').addEventListener('submit', async function
         return;
     }
 
-    // Получаем д    анные формы
+    // Получаем данные формы
     const formData = {
         Имя: document.getElementById('name').value,
         Email: document.getElementById('email').value,
@@ -16,38 +16,21 @@ document.getElementById('contactForm').addEventListener('submit', async function
         Дата: new Date().toLocaleString(),
     };
 
-    // Динамически загружаем библиотеку docx
+    // Загружаем библиотеку SheetJS динамически
     const script = document.createElement('script');
-    script.src = 'https://unpkg.com/docx@8.0.0/build/index.js';
-    script.onload = async () => {
-        const { Document, Paragraph, TextRun, Packer } = docx;
-        const doc = new Document({
-            sections: [{
-                properties: {},
-                children: [
-                    new Paragraph({
-                        children: [
-                            new TextRun({ text: "Новая заявка", bold: true, size: 28 }),
-                        ],
-                    }),
-                    new Paragraph({ text: `Имя: ${formData.Имя}` }),
-                    new Paragraph({ text: `Email: ${formData.Email}` }),
-                    new Paragraph({ text: `Телефон: ${formData.Телефон}` }),
-                    new Paragraph({ text: `Сообщение: ${formData.Сообщение}` }),
-                    new Paragraph({ text: `Дата: ${formData.Дата}` }),
-                ],
-            }],
-        });
+    script.src = 'https://cdn.sheetjs.com/xlsx-0.19.3/package/dist/xlsx.full.min.js';
+    script.onload = () => {
+        // Создаем книгу Excel
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.json_to_sheet([formData]);
 
-        const blob = await Packer.toBlob(doc);
-        const url = URL.createObjectURL(blob);
+        // Добавляем лист в книгу
+        XLSX.utils.book_append_sheet(wb, ws, 'Заявки');
+
+        // Генерируем файл и скачиваем
+        XLSX.writeFile(wb, 'Заявка_' + new Date().getTime() + '.xlsx');
         
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `Заявка_${new Date().getTime()}.docx`;
-        a.click();
-        
-        alert('Данные сохранены в Word!');
+        alert('Данные сохранены в Excel!');
         this.reset();
         if (typeof grecaptcha !== 'undefined') grecaptcha.reset();
     };
