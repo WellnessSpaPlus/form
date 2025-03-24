@@ -8,7 +8,7 @@ document.getElementById('contactForm').addEventListener('submit', function(e) {
     }
 
     // Получаем текущие данные из localStorage (если есть)
-    let allRequests = JSON.parse(localStorage.getItem('requests') || [];
+    let allRequests = JSON.parse(localStorage.getItem('requests') || []);
 
     // Добавляем новую заявку
     const newRequest = {
